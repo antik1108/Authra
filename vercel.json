@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "name": "authra",
+  "builds": [
+    {
+      "src": "authra-frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    },
+    {
+      "src": "authra-backend/src/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "authra-backend/src/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "authra-frontend/dist/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

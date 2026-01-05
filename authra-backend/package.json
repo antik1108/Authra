@@ -1,0 +1,37 @@
+{
+  "name": "authra-backend",
+  "version": "1.0.0",
+  "description": "Authra University Parcel Management System - Backend API",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "postinstall": "npx prisma generate",
+    "db:push": "npx prisma db push",
+    "db:migrate": "npx prisma migrate dev",
+    "db:studio": "npx prisma studio",
+    "db:seed": "node prisma/seed.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "parcel",
+    "tracking",
+    "university",
+    "mail-management"
+  ],
+  "author": "Authra Team",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "prisma": "^6.19.0"
+  }
+}

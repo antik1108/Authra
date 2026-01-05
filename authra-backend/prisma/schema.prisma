@@ -1,0 +1,346 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model University {
+  id                    String                @id @default(cuid())
+  universityName        String
+  institutionType       String
+  website               String?
+  establishedYear       Int?
+  numberOfStudents      Int?
+  accreditationInfo     String?
+  logoUrl               String?
+  proofOfInstitutionUrl String?
+  addressLine1          String
+  addressLine2          String?
+  city                  String
+  state                 String
+  country               String
+  zipCode               String
+  adminName             String
+  adminPosition         String
+  adminEmail            String                @unique
+  contactNumber         String
+  supportContact        String?
+  passwordHash          String
+  isVerified            Boolean               @default(false)
+  isActive              Boolean               @default(true)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  admins                Admin[]
+  notifications         Notification[]
+  parcels               Parcel[]
+  staff                 Staff[]
+  students              Student[]
+  unregisteredStudents  UnregisteredStudent[]
+  users                 User[]
+  wardens               Warden[]
+
+  @@index([adminEmail])
+  @@index([universityName])
+  @@index([createdAt])
+  @@index([isActive])
+}
+
+model User {
+  id              String         @id @default(cuid())
+  email           String
+  passwordHash    String
+  firstName       String
+  lastName        String
+  phoneNumber     String?
+  studentId       String?
+  employeeId      String?
+  userType        UserType       @default(STUDENT)
+  universityId    String
+  dormitory       String?
+  roomNumber      String?
+  addressLine1    String?
+  addressLine2    String?
+  city            String?
+  state           String?
+  zipCode         String?
+  isVerified      Boolean        @default(false)
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  lastLogin       DateTime?
+  program         String?
+  gender          Gender?
+  approvalStatus  ApprovalStatus @default(PENDING)
+  approvedAt      DateTime?
+  approvedBy      String?
+  isApproved      Boolean        @default(false)
+  rejectedAt      DateTime?
+  rejectedBy      String?
+  admins          Admin?
+  notifications   Notification[]
+  receivedParcels Parcel[]       @relation("Receiver")
+  sentParcels     Parcel[]       @relation("Sender")
+  staff           Staff?
+  students        Student?
+  university      University     @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  wardens         Warden?
+
+  @@unique([universityId, email])
+  @@index([email])
+  @@index([universityId])
+  @@index([studentId])
+  @@index([userType])
+  @@index([approvalStatus])
+  @@index([createdAt])
+  @@index([employeeId])
+  @@index([isActive])
+  @@index([lastLogin])
+  @@index([universityId, approvalStatus])
+  @@index([universityId, isActive])
+  @@index([universityId, userType, approvalStatus])
+  @@index([universityId, userType])
+}
+
+model Parcel {
+  id                 String            @id @default(cuid())
+  trackingNumber     String            @unique
+  senderId           String?
+  senderName         String
+  senderAddress      String?
+  senderPhone        String?
+  receiverId         String?
+  receiverName       String
+  receiverEmail      String
+  receiverPhone      String?
+  receiverStudentId  String?
+  universityId       String
+  courierService     String?
+  weight             Float?
+  dimensions         String?
+  description        String?
+  parcelType         ParcelType        @default(PACKAGE)
+  status             ParcelStatus      @default(PENDING)
+  location           String?
+  pickupCode         String?           @unique
+  isPickedUp         Boolean           @default(false)
+  pickedUpAt         DateTime?
+  pickedUpBy         String?
+  notificationSent   Boolean           @default(false)
+  notificationSentAt DateTime?
+  arrivedAt          DateTime          @default(now())
+  expectedPickupBy   DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  note               String?
+  orderId            String?
+  organization       String?
+  photoUrl           String?
+  notifications      Notification[]
+  receiver           User?             @relation("Receiver", fields: [receiverId], references: [id])
+  sender             User?             @relation("Sender", fields: [senderId], references: [id])
+  university         University        @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  trackingHistory    TrackingHistory[]
+
+  @@index([trackingNumber])
+  @@index([universityId])
+  @@index([receiverId])
+  @@index([receiverEmail])
+  @@index([status])
+  @@index([pickupCode])
+  @@index([arrivedAt])
+  @@index([createdAt])
+  @@index([isPickedUp])
+  @@index([orderId])
+  @@index([organization])
+  @@index([receiverId, status])
+  @@index([receiverStudentId])
+  @@index([status, arrivedAt])
+  @@index([universityId, arrivedAt])
+  @@index([universityId, receiverId])
+  @@index([universityId, status, arrivedAt])
+  @@index([universityId, status])
+}
+
+model UnregisteredStudent {
+  id           String     @id @default(cuid())
+  universityId String
+  name         String
+  phone        String?
+  email        String?
+  createdAt    DateTime   @default(now())
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([universityId])
+  @@index([name])
+  @@index([createdAt])
+  @@index([email])
+}
+
+model TrackingHistory {
+  id        String       @id @default(cuid())
+  parcelId  String
+  status    ParcelStatus
+  location  String?
+  notes     String?
+  updatedBy String?
+  createdAt DateTime     @default(now())
+  parcel    Parcel       @relation(fields: [parcelId], references: [id], onDelete: Cascade)
+
+  @@index([parcelId])
+  @@index([createdAt])
+  @@index([parcelId, createdAt])
+  @@index([status])
+}
+
+model Notification {
+  id           String           @id @default(cuid())
+  universityId String?
+  userId       String?
+  parcelId     String?
+  type         NotificationType
+  title        String
+  message      String
+  isRead       Boolean          @default(false)
+  isSent       Boolean          @default(false)
+  sentAt       DateTime?
+  createdAt    DateTime         @default(now())
+  parcel       Parcel?          @relation(fields: [parcelId], references: [id], onDelete: Cascade)
+  university   University?      @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  user         User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([universityId])
+  @@index([parcelId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([isSent])
+  @@index([type, createdAt])
+  @@index([type])
+  @@index([universityId, createdAt])
+  @@index([userId, createdAt])
+  @@index([userId, isRead])
+}
+
+model Student {
+  id           String     @id @default(cuid())
+  userId       String     @unique
+  universityId String
+  enrollmentNo String
+  program      String?
+  gender       Gender?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([universityId, enrollmentNo])
+  @@index([universityId])
+  @@index([createdAt])
+  @@index([enrollmentNo])
+  @@index([program])
+}
+
+model Admin {
+  id           String     @id @default(cuid())
+  userId       String     @unique
+  universityId String
+  employeeId   String
+  position     String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([universityId, employeeId])
+  @@index([universityId])
+  @@index([createdAt])
+  @@index([employeeId])
+  @@index([position])
+}
+
+model Staff {
+  id           String     @id @default(cuid())
+  userId       String     @unique
+  universityId String
+  employeeId   String
+  department   String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([universityId, employeeId])
+  @@index([universityId])
+  @@index([createdAt])
+  @@index([department])
+  @@index([employeeId])
+}
+
+model Warden {
+  id           String     @id @default(cuid())
+  userId       String     @unique
+  universityId String
+  employeeId   String
+  hostelName   String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([universityId, employeeId])
+  @@index([universityId])
+}
+
+enum UserType {
+  STUDENT
+  FACULTY
+  STAFF
+  ADMIN
+  WARDEN
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum ParcelType {
+  PACKAGE
+  LETTER
+  DOCUMENT
+  LARGE_ITEM
+  FRAGILE
+  PERISHABLE
+}
+
+enum ParcelStatus {
+  PENDING
+  ARRIVED
+  READY_FOR_PICKUP
+  OUT_FOR_DELIVERY
+  PICKED_UP
+  RETURNED
+  LOST
+  DAMAGED
+  PLACED
+}
+
+enum NotificationType {
+  PARCEL_ARRIVED
+  READY_FOR_PICKUP
+  PICKUP_REMINDER
+  PARCEL_PICKED_UP
+  PARCEL_RETURNED
+  SYSTEM_ALERT
+  ACCOUNT_VERIFICATION
+}
