@@ -214,7 +214,7 @@ This project is licensed under the ISC License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-For support, email support@authra.com or create an issue in this repository.
+For support, email founder.antik@gmail.com or create an issue in this repository.
 
 ---
 
